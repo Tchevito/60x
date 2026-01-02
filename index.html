@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>60s</title>
+
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #28a745;
+            --background: #1a1a2e;
+            --game-bg: #16213e;
+            --text-color: #ffffff;
+            --button-bg: #0f3460;
+            --button-text: #ffffff;
+            --correct-color: #28a745;
+            --wrong-color: #dc3545;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: var(--background);
+            padding: 20px;
+            color: var(--text-color);
+        }
+
+        .game-container {
+            background: var(--game-bg);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .score {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .timer {
+            font-size: 1.5em;
+            color: var(--primary-color);
+        }
+
+        .problem-display {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .answer-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .answer-button {
+            padding: 20px;
+            font-size: 1.5em;
+            border: none;
+            border-radius: 10px;
+            background: var(--button-bg);
+            color: var(--button-text);
+            cursor: pointer;
+        }
+
+        .answer-button:hover {
+            transform: translateY(-3px);
+            background: var(--primary-color);
+        }
+
+        .status-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: var(--primary-color);
+            width: 100%;
+        }
+
+        .game-over {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .game-over-content {
+            background: var(--game-bg);
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .restart-button {
+            padding: 15px 40px;
+            font-size: 1.2em;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        @keyframes correct {
+            from { background: var(--correct-color); }
+            to { background: var(--button-bg); }
+        }
+
+        @keyframes wrong {
+            from { background: var(--wrong-color); }
+            to { background: var(--button-bg); }
+        }
+
+        .correct { animation: correct 0.5s; }
+        .wrong { animation: wrong 0.5s; }
+
+        /* Media Queries para Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .game-container {
+                padding: 15px;
+            }
+
+            .game-header {
+                flex-wrap: wrap;
+                gap: 10px;
+                justify-content: center;
+            }
+
+            .game-header > div {
+                font-size: 1.1em;
+                flex: 1 1 calc(50% - 5px);
+                text-align: center;
+                min-width: 120px;
+            }
+
+            .problem-display {
+                font-size: 1.8em;
+                padding: 20px;
+                min-height: 120px;
+            }
+
+            .answer-grid {
+                gap: 10px;
+            }
+
+            .answer-button {
+                padding: 15px;
+                font-size: 1.2em;
+            }
+
+            .game-over-content {
+                padding: 30px 20px;
+                margin: 20px;
+                max-width: 90%;
+            }
+
+            .restart-button {
+                padding: 12px 30px;
+                font-size: 1em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+
+            .game-container {
+                padding: 10px;
+                border-radius: 10px;
+            }
+
+            .game-header {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .game-header > div {
+                font-size: 1em;
+                width: 100%;
+                flex: none;
+            }
+
+            .score, .timer {
+                font-size: 0.95em;
+            }
+
+            .problem-display {
+                font-size: 1.5em;
+                padding: 15px;
+                min-height: 100px;
+            }
+
+            .answer-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .answer-button {
+                padding: 18px;
+                font-size: 1.3em;
+                width: 100%;
+            }
+
+            .status-bar {
+                height: 8px;
+            }
+
+            .game-over-content {
+                padding: 25px 15px;
+                margin: 15px;
+                max-width: 95%;
+            }
+
+            .game-over-content h2 {
+                font-size: 1.5em;
+            }
+
+            .game-over-content p {
+                font-size: 0.9em;
+            }
+
+            #newRecord {
+                font-size: 1.3em !important;
+            }
+
+            .restart-button {
+                padding: 12px 25px;
+                font-size: 0.95em;
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .game-container {
+                max-width: 90%;
+            }
+
+            .problem-display {
+                font-size: 2.2em;
+            }
+
+            .answer-button {
+                font-size: 1.4em;
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .game-container {
+                max-width: 800px;
+            }
+        }
+
+        /* Ajustes para orientación horizontal en móviles */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .game-header {
+                flex-direction: row;
+                flex-wrap: nowrap;
+            }
+
+            .game-header > div {
+                font-size: 0.9em;
+                flex: 1;
+            }
+
+            .problem-display {
+                font-size: 1.5em;
+                min-height: 80px;
+                padding: 15px;
+            }
+
+            .answer-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- START SCREEN -->
+<div class="game-over" id="startScreen" style="display:flex;">
+    <div class="game-over-content">
+        <h2>60s Math Challenge</h2>
+        <p>Resuelve tantos problemas como puedas en 60 segundos.</p>
+        <button class="restart-button" onclick="startGame()">Start</button>
+    </div>
+</div>
+
+<!-- GAME -->
+<div class="game-container">
+    <div class="game-header">
+        <div class="score">Récord: <span id="highScore">0</span></div>
+        <div class="score">Puntos: <span id="score">0</span></div>
+        <div class="score">Nivel: <span id="level">1</span></div>
+        <div class="timer">Tiempo: <span id="timer">60</span>s</div>
+    </div>
+
+    <div class="status-bar">
+        <div class="progress" id="timeProgress"></div>
+    </div>
+
+    <div class="problem-display" id="problem">¡Prepárate!</div>
+
+    <div class="answer-grid">
+        <button class="answer-button" onclick="checkAnswer(0)"></button>
+        <button class="answer-button" onclick="checkAnswer(1)"></button>
+        <button class="answer-button" onclick="checkAnswer(2)"></button>
+        <button class="answer-button" onclick="checkAnswer(3)"></button>
+    </div>
+</div>
+
+<!-- GAME OVER -->
+<div class="game-over" id="gameOver">
+    <div class="game-over-content">
+        <h2>¡Juego Terminado!</h2>
+        <p id="newRecord" style="display:none; color:#28a745; font-size:1.8em;">
+            ¡NUEVO RÉCORD!
+        </p>
+        <p>Puntuación final: <span id="finalScore">0</span></p>
+        <p>Nivel alcanzado: <span id="finalLevel">1</span></p>
+        <button class="restart-button" onclick="startGame()">Jugar de nuevo</button>
+    </div>
+</div>
+
+<script>
+    let score = 0;
+    let level = 1;
+    let timeLeft = 60;
+    let timer;
+    let correctAnswer;
+    let gameActive = false;
+
+    let highScore = localStorage.getItem('highScore') || 0;
+    document.getElementById('highScore').textContent = highScore;
+
+    function generateProblem() {
+        let num1, num2, operator;
+        const operators = level === 1 ? ['+', '-'] :
+                          level === 2 ? ['+', '-', '*'] :
+                          ['+', '-', '*', '/'];
+
+        operator = operators[Math.floor(Math.random() * operators.length)];
+
+        // Aumentar dificultad progresivamente con el nivel
+        const difficultyMultiplier = Math.max(1, Math.floor(level / 2) + 1);
+
+        switch (operator) {
+            case '+':
+                num1 = Math.floor(Math.random() * 10 * difficultyMultiplier) + 1;
+                num2 = Math.floor(Math.random() * 10 * difficultyMultiplier) + 1;
+                correctAnswer = num1 + num2;
+                break;
+            case '-':
+                num1 = Math.floor(Math.random() * 10 * difficultyMultiplier) + 1;
+                num2 = Math.floor(Math.random() * num1);
+                correctAnswer = num1 - num2;
+                break;
+            case '*':
+                num1 = Math.floor(Math.random() * 5 * difficultyMultiplier) + 1;
+                num2 = Math.floor(Math.random() * 5 * difficultyMultiplier) + 1;
+                correctAnswer = num1 * num2;
+                break;
+            case '/':
+                num2 = Math.floor(Math.random() * 5 * difficultyMultiplier) + 1;
+                correctAnswer = Math.floor(Math.random() * 5 * difficultyMultiplier) + 1;
+                num1 = num2 * correctAnswer;
+                break;
+        }
+
+        document.getElementById('problem').textContent =
+            `${num1} ${operator} ${num2} = ?`;
+
+        // Generar respuestas incorrectas más variadas y evitar negativas
+        let answers = [correctAnswer];
+        while (answers.length < 4) {
+            // Variar más las respuestas incorrectas según el nivel
+            const variance = Math.max(5, Math.floor(correctAnswer * 0.3) + level * 2);
+            let wrong = correctAnswer + Math.floor(Math.random() * variance * 2) - variance;
+            
+            // Asegurar que no sea negativa y no sea igual a la respuesta correcta
+            if (wrong < 0) wrong = Math.abs(wrong) + 1;
+            if (wrong === correctAnswer) wrong += Math.floor(Math.random() * 5) + 1;
+            
+            if (!answers.includes(wrong)) answers.push(wrong);
+        }
+
+        answers.sort(() => Math.random() - 0.5);
+
+        document.querySelectorAll('.answer-button')
+            .forEach((btn, i) => btn.textContent = answers[i]);
+    }
+
+    function getPointsForLevel(currentLevel) {
+        // Nivel 1: 10 puntos, Nivel 2: 15 puntos, Nivel 3: 20 puntos, etc.
+        return 10 + (currentLevel - 1) * 5;
+    }
+
+    function checkLevelUp() {
+        // Sube de nivel cada 400 puntos
+        const newLevel = Math.floor(score / 400) + 1;
+        if (newLevel > level) {
+            level = newLevel;
+            document.getElementById('level').textContent = level;
+        }
+    }
+
+    function checkAnswer(index) {
+        if (!gameActive) return;
+
+        const btns = document.querySelectorAll('.answer-button');
+        const value = parseInt(btns[index].textContent);
+        const btn = btns[index];
+
+        if (value === correctAnswer) {
+            // Obtener puntos según el nivel actual
+            const pointsEarned = getPointsForLevel(level);
+            score += pointsEarned;
+            
+            // Verificar si sube de nivel
+            checkLevelUp();
+            
+            timeLeft = Math.min(timeLeft + 3, 60);
+            btn.classList.add('correct');
+            
+            // Reproducir sonido de forma segura
+            const clickSound = document.getElementById('sonidoClick');
+            if (clickSound) {
+                clickSound.play().catch(() => {}); // Ignorar errores de audio
+            }
+        } else {
+            timeLeft = Math.max(0, timeLeft - 5);
+            btn.classList.add('wrong');
+            
+            // Reproducir sonido de forma segura
+            const wrongSound = document.getElementById('sonidoWrong');
+            if (wrongSound) {
+                wrongSound.play().catch(() => {}); // Ignorar errores de audio
+            }
+        }
+
+        setTimeout(() => btn.classList.remove('correct', 'wrong'), 500);
+
+        document.getElementById('score').textContent = score;
+        document.getElementById('timer').textContent = timeLeft;
+        document.getElementById('timeProgress').style.width = `${(timeLeft / 60) * 100}%`;
+
+        if (timeLeft <= 0) endGame();
+        else generateProblem();
+    }
+
+    function updateTimer() {
+        timeLeft--;
+        document.getElementById('timer').textContent = timeLeft;
+        document.getElementById('timeProgress').style.width = `${(timeLeft / 60) * 100}%`;
+        if (timeLeft <= 0) endGame();
+    }
+
+    function endGame() {
+        clearInterval(timer);
+        gameActive = false;
+
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('highScore', highScore);
+            document.getElementById('highScore').textContent = highScore;
+            document.getElementById('newRecord').style.display = 'block';
+        }
+
+        document.getElementById('finalScore').textContent = score;
+        document.getElementById('finalLevel').textContent = level;
+        document.getElementById('gameOver').style.display = 'flex';
+    }
+
+    function startGame() {
+        score = 0;
+        level = 1;
+        timeLeft = 60;
+        gameActive = true;
+
+        document.getElementById('newRecord').style.display = 'none';
+        document.getElementById('startScreen').style.display = 'none';
+        document.getElementById('gameOver').style.display = 'none';
+
+        document.getElementById('score').textContent = 0;
+        document.getElementById('level').textContent = 1;
+        document.getElementById('timer').textContent = 60;
+        document.getElementById('timeProgress').style.width = '100%';
+
+        clearInterval(timer);
+        timer = setInterval(updateTimer, 1000);
+
+        generateProblem();
+    }
+</script>
+
+<audio id="sonidoClick" src="arcade-ui-6-229503 (1).mp3" preload="auto"></audio>
+<audio id="sonidoWrong" src="arcade-ui-4-229502 (1).mp3" preload="auto"></audio>
+
+</body>
+</html>
